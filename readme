@@ -1,0 +1,9 @@
+rule:
+val = val+val | val-val | val/val | val*val | num | e
+
+bool = icmp val1, val2
+
+br bool label1, label2
+
+label = newblock br end
+
