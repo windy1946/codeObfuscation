@@ -1,0 +1,34 @@
+./a.out 5
+
+basicblock0:
+dxval0=74
+dxval1=50
+cmp0 cmp dxval0 dxval1
+basicblock1:
+basicblock2:
+dxval2=70
+dxval3=81
+cmp1 cmp dxval2 dxval3
+basicblock3:
+basicblock4:
+dxval4=70
+dxval5=99
+cmp2 cmp dxval4 dxval5
+-----end
+-----end
+basicblock5:
+dxval6=82
+dxval7=30
+cmp3 cmp dxval6 dxval7
+-----end
+br cmp1 basicblock3,basicblock5
+-----end
+-----end
+basicblock6:
+dxval8=53
+dxval9=96
+cmp4 cmp dxval8 dxval9
+-----end
+br cmp0 basicblock1,basicblock6
+-----end
+generated!
