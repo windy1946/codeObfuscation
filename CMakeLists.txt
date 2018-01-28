@@ -10,11 +10,17 @@ if(WIN32 OR CYGWIN)
   set(LLVM_LINK_COMPONENTS Core Support)
 endif()
 
+aux_source_directory(. SRC_LIST)
 
 add_llvm_loadable_module( MyDeadCodeGen
-  MyCodeGen.cpp
-  DeadCodeGen.cpp
-
+	MyCodeGen.cpp
+  CodeGen.cpp
+  Common.h
+  log.h
+  SemanticGen.h
+  UtilTool.h
+  IncludeFile.h
+  
   DEPENDS
   intrinsics_gen
   PLUGIN_TOOL

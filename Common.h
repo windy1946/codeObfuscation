@@ -2,6 +2,9 @@
 
 using namespace llvm;
 
+#ifndef COMMON
+#define COMMON
+
 class BlockPath{
 public:
     static void InsertBlock(BasicBlock* block){
@@ -71,3 +74,4 @@ private:
     std::vector<Value*> values;
 };
 
+#endif

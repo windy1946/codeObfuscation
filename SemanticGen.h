@@ -62,8 +62,8 @@ BlockInfo ifGen(BlockInfo blockinfo){
 
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
 
-    Value* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getValue, 
-                                               falseblockinfo.getBasicBlock, falseblockinfo.getValue(), 
+    Value* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getValue(), 
+                                               falseblockinfo.getBasicBlock(), falseblockinfo.getValue(), 
                                                mergeblock);
 
     return this->StatementGen(BlockInfo(mergeblock, phivalue));

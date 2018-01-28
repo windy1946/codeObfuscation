@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <time.h>
 
+#ifndef UTILTOOL
+#define UTILTOOL
+
 class UtilTool{
 public:
 
@@ -15,3 +18,5 @@ public:
         return (int)(rand()%num);
     }
 };
+
+#endif

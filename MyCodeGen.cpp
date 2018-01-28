@@ -18,6 +18,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/Bitcode/BitcodeWriterPass.h" 
 
 #include "CodeGen.h"
 #include "UtilTool.h"
@@ -33,10 +34,11 @@ using namespace llvm;
 
 STATISTIC(HelloCounter, "Counts number of functions greeted");
 
+
 namespace {
   
   // Hello - The first implementation, without getAnalysisUsage.
-  struct MyCodeGen : public FunctionPass {
+  class MyCodeGen : public FunctionPass {
     static char ID; // Pass identification, replacement for typeid
     MyCodeGen() : FunctionPass(ID) {}
     
@@ -44,8 +46,6 @@ namespace {
       BasicBlock* block = inst->getParent();
       BasicBlock* restblock = block->splitBasicBlock(inst, "restbb");
       if(restblock == nullptr){
-        LOGE(block->getName());
-        LOGE("split block fail");
         return;
       }
       BasicBlock* newblock = BasicBlock::Create(block->getContext(), "newblock", block->getParent());
