@@ -19,9 +19,11 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/BasicBlock.h"
 
-#include "DeadCodeGen.h"
 #include "CodeGen.h"
 #include "UtilTool.h"
+#include "log.h"
+#include "Common.h"
+#include "SemanticGen.h"
 
 #include <vector>
 
@@ -38,6 +40,24 @@ namespace {
     static char ID; // Pass identification, replacement for typeid
     MyCodeGen() : FunctionPass(ID) {}
     
+    void insertDeadCode(Instruction* inst){
+      BasicBlock* block = inst->getParent();
+      BasicBlock* restblock = block->splitBasicBlock(inst, "restbb");
+      if(restblock == nullptr){
+        LOGE(block->getName());
+        LOGE("split block fail");
+        return;
+      }
+      BasicBlock* newblock = BasicBlock::Create(block->getContext(), "newblock", block->getParent());
+      BranchInst::Create(restblock, newblock);
+
+      block->getTerminator()->eraseFromParent();
+      BranchInst::Create(newblock, block);
+      
+      SemanticGen semgen;
+      BlockInfo blockinfo = semgen.StatementGen(newblock);
+
+    }
 
     bool runOnFunction(Function &F) override {
       int percent = 50; //max num : 100
@@ -58,14 +78,13 @@ namespace {
         }
       }
       
-
-      
-      for(std::vector<Instruction*>::iterator inst = inserts.begin();inst!=inserts.end(); inst++){
-        DeadCodeGen dcg = DeadCodeGen(10,3);
-        dcg.beginCodeGen((Instruction*)(*inst));
+      for(int i=0; inserts.size(); i++){
+        LOGD(i);
+        Instruction* inst = inserts[i];
+        this->insertDeadCode(inst);
       }
       
-      errs() << "finish !!!!!: \n";
+      LOGD("FINISH");
       return true;
     }
   };

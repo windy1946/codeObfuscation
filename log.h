@@ -1,11 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "llvm/Support/raw_ostream.h"
 
-#define LOGI(fmt, ...) fprintf(stdout, "I::" fmt "\n", ##__VA_ARGS__)
-#define LOGE(fmt, ...) fprintf(stderr, "E::" fmt "\n", ##__VA_ARGS__)
+#define LOGI(fmt) llvm::errs()<<"I::"<<fmt<<"\n";
+#define LOGE(fmt) llvm::errs()<<"E::"<<fmt<<"\n";
 
 #ifdef NDEBUG
-#define LOGD(fmt, ...)
+#define LOGD(fmt)
 #else
-#define LOGD(fmt, ...) fprintf(stdout, "I::" fmt "\n", ##__VA_ARGS__)
+#define LOGD(fmt) llvm::errs()<<"D::"<<fmt<<"\n";
 #endif

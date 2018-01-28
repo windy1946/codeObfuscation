@@ -47,6 +47,10 @@ public :
     }
 
     static Value* MergeBlocks(BasicBlock* block1, Value* value1, BasicBlock* block2, Value* value2, BasicBlock* mergeblock){
+        
+        BranchInst::Create(mergeblock, block1);
+        BranchInst::Create(mergeblock, block2);
+        
         IRBuilder<> builder(mergeblock);
         LLVMContext& context = mergeblock->getContext();
         builder.SetInsertPoint(mergeblock);

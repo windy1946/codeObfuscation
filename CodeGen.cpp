@@ -30,6 +30,7 @@
 
 #include "CodeGen.h"
 #include "UtilTool.h"
+#include "log.h"
 
 using namespace llvm;
 
@@ -119,19 +120,39 @@ Value* BoolCmpCodeGen::codegen(BasicBlock* block){
 Value* IfThenCodeGen::codegen(BasicBlock* block){
     errs()<<"ifthenCodegen!\n";
     LLVMContext& context = block->getParent()->getContext();
-    
+    BasicBlock* successblock = block->getSingleSuccessor();
+    if(successblock == nullptr){
+        LOGE("the block has multiply successors");
+        return nullptr;
+    }
+
+    block->getTerminator()->eraseFromParent();
+
     //考虑block的后继节点。
     
     this->trueblock = BasicBlock::Create(context, "trueblock", block->getParent());
     this->falseblock = BasicBlock::Create(context, "falseblock", block->getParent());
+
+    BranchInst::Create(successblock, this->trueblock);
+    BranchInst::Create(successblock, this->falseblock);
+
     BranchInst::Create(this->trueblock, this->falseblock, this->cond, block);
-    return NULL;
+
+    return nullptr;
 }
 
 
 Value* SwitchCodeGen::codegen(BasicBlock* block){
+    BasicBlock* successblock = block->getSingleSuccessor();
+    if(successblock == nullptr){
+        LOGE("the block has multiply successors");
+        return nullptr;
+    }
     LLVMContext& context = block->getParent()->getContext();
     BasicBlock* defBlock = BasicBlock::Create(context, "defblock", block->getParent());
+    BranchInst::Create(successblock, defBlock);
+    block->getTerminator()->eraseFromParent();
+    
     SwitchInst* switchI = SwitchInst::Create(this->cond, defBlock, this->condnum, block);
     
     ConstantInt* mycond = dyn_cast<ConstantInt>(this->cond);
@@ -148,6 +169,8 @@ Value* SwitchCodeGen::codegen(BasicBlock* block){
         int num = UtilTool::getrandnum(UtilTool::MAX_NUM);
         ConstantInt* constint = ConstantInt::get(context, APInt(32, num));
         BasicBlock* otherblock = BasicBlock::Create(context, "otherblock", block->getParent);
+        BranchInst::Create(successblock, otherblock);
+
         switchI->addCase(constint, otherblock);
         this->othercases.push_back(otherblock);
     }
