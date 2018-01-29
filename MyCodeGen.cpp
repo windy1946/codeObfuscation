@@ -36,13 +36,8 @@ STATISTIC(HelloCounter, "Counts number of functions greeted");
 
 
 namespace {
-  
-  // Hello - The first implementation, without getAnalysisUsage.
-  class MyCodeGen : public FunctionPass {
-    static char ID; // Pass identification, replacement for typeid
-    MyCodeGen() : FunctionPass(ID) {}
-    
-    void insertDeadCode(Instruction* inst){
+
+  void insertDeadCode(Instruction* inst){
       BasicBlock* block = inst->getParent();
       BasicBlock* restblock = block->splitBasicBlock(inst, "restbb");
       if(restblock == nullptr){
@@ -58,7 +53,11 @@ namespace {
       BlockInfo blockinfo = semgen.StatementGen(newblock);
 
     }
-
+  // Hello - The first implementation, without getAnalysisUsage.
+  struct MyCodeGen : public FunctionPass {
+    static char ID; // Pass identification, replacement for typeid
+    MyCodeGen() : FunctionPass(ID) {}
+    
     bool runOnFunction(Function &F) override {
       int percent = 50; //max num : 100
       ++HelloCounter;
@@ -81,17 +80,21 @@ namespace {
       for(int i=0; inserts.size(); i++){
         LOGD(i);
         Instruction* inst = inserts[i];
-        this->insertDeadCode(inst);
+        insertDeadCode(inst);
       }
       
       LOGD("FINISH");
       return true;
     }
   };
+
+  
 }
 
 char MyCodeGen::ID = 0;
+
 static RegisterPass<MyCodeGen> X("mycodegen", "Hello World Pass");
+
 
 namespace {
   // Hello2 - The second implementation with getAnalysisUsage implemented.

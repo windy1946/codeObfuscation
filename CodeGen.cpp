@@ -16,6 +16,8 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/ADT/APInt.h"
+#include "llvm/IR/InstrTypes.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -37,9 +39,8 @@ using namespace llvm;
 
 
 Value* IntegerCodeGen::codegen(BasicBlock* block){
-    errs()<<"integerCodegen: " << num << "\n";
+    LOGD("IntegerCodeGen");
     LLVMContext& context = block->getParent()->getContext();
-    errs()<<"after context\n";
     return ConstantInt::get(context, APInt(this->intNumbit, num));
 }
 
@@ -47,7 +48,7 @@ Value* IntegerCodeGen::codegen(BasicBlock* block){
 
 
 Value* IntegerArithCodeGen::codegen(BasicBlock* block){
-    errs()<<"operationCodegen!\n";
+    LOGD("IntegerArithCodeGen");
     ConstantInt* constint1 = dyn_cast<ConstantInt>(this->val1);
     ConstantInt* constint2 = dyn_cast<ConstantInt>(this->val2);
     int numval1 = 0;
@@ -59,34 +60,31 @@ Value* IntegerArithCodeGen::codegen(BasicBlock* block){
         return NULL;
     }
         
-    BasicBlock::iterator insert = block->end();
-    insert--;
+    BasicBlock::iterator inst = block->end();
+    inst--;
+    //Instruction* inst = block->getTerminator();
     BinaryOperator* binop;
         
     switch(this->op){
         case ADD:
-            errs()<<"add\n";
-            binop = BinaryOperator::Create(Instruction::Add, val1, val2, "addtmp", &*insert);//builder.CreateAdd(val1, val2, "addtmp");
+            LOGD("ADD");
+            binop = BinaryOperator::Create(Instruction::Add, val1, val2, "addtmp", &*inst);//builder.CreateAdd(val1, val2, "addtmp");
             this->ret = numval1 + numval2;
-            errs()<<"after add\n";
             break;
         case SUB:
-            errs()<<"sub\n";
-            binop = BinaryOperator::Create(Instruction::Sub, val1, val2, "subtmp", &*insert);//builder.CreateAdd(val1, val2, "addtmp");
+            LOGD("SUB");
+            binop = BinaryOperator::Create(Instruction::Sub, val1, val2, "subtmp", &*inst);//builder.CreateAdd(val1, val2, "addtmp");
             this->ret = numval1 - numval2;
-            errs()<<"after sub\n";
             break;
         case MUL:
-            errs()<<"mul\n";
-            binop = BinaryOperator::Create(Instruction::Mul, val1, val2, "multmp", &*insert);//builder.CreateAdd(val1, val2, "addtmp");
+            LOGD("MUL");
+            binop = BinaryOperator::Create(Instruction::Mul, val1, val2, "multmp", &*inst);//builder.CreateAdd(val1, val2, "addtmp");
             this->ret = numval1 * numval2;
-            errs()<<"after mul\n";
             break;
         case DIV:
-            errs()<<"div\n";
-            binop = BinaryOperator::Create(Instruction::SDiv, val1, val2, "divtmp", &*insert);//builder.CreateAdd(val1, val2, "addtmp");
+            LOGD("DIV");
+            binop = BinaryOperator::Create(Instruction::SDiv, val1, val2, "divtmp", &*inst);//builder.CreateAdd(val1, val2, "addtmp");
             this->ret = numval1 / numval2;
-            errs()<<"after div\n";
             break;
     }
     return (Value*)binop;    
@@ -94,7 +92,7 @@ Value* IntegerArithCodeGen::codegen(BasicBlock* block){
 
 
 Value* BoolCmpCodeGen::codegen(BasicBlock* block){
-    errs()<<"cmpCodegen!\n";
+    LOGD("BoolCmpCodeGen");
     ConstantInt* constint1 = dyn_cast<ConstantInt>(this->val1);
     ConstantInt* constint2 = dyn_cast<ConstantInt>(this->val2);
     int numval1 = 0;
@@ -103,26 +101,39 @@ Value* BoolCmpCodeGen::codegen(BasicBlock* block){
         numval1 = constint1->getSExtValue();
         numval2 = constint2->getSExtValue();
     }else{
+        LOGE("Operands in boolcmpcodegen is null!");
         return NULL;
     }
 
-    IRBuilder<> builder(block);
+    Value * LHS = ConstantFP::get(Type::getFloatTy(block->getContext()), (float)numval1);
+    Value * RHS = ConstantFP::get(Type::getFloatTy(block->getContext()), (float)numval2);
+
+    TerminatorInst* term = block->getTerminator();
+    //CmpInst * condition = new CmpInst(term, FCmpInst::FCMP_TRUE , this->val1, this->val2, "eqcmp");
     switch(op){
-        case EQUAL: this->ret = (numval1 == numval2); return builder.CreateICmpEQ(val1, val2, "eqcmp");
-        case UEQUAL: this->ret = (numval1 != numval2); return builder.CreateICmpNE(val1,val2,"necmp");
-        case GREATERT: this->ret = (numval1 > numval2); return builder.CreateICmpSGE(val1,val2,"gecmp");
-        case LESST: this->ret = (numval1 < numval2); return builder.CreateICmpSLE(val1,val2,"lecmp");
+        case EQUAL: 
+            this->ret = (numval1 == numval2); 
+            return new FCmpInst(term, FCmpInst::FCMP_OEQ , LHS, RHS, "eqcmp");
+        case UEQUAL: 
+            this->ret = (numval1 != numval2); 
+            return new FCmpInst(term, FCmpInst::FCMP_ONE , LHS, RHS, "necmp");
+        case GREATERT: 
+            this->ret = (numval1 > numval2); 
+            return new FCmpInst(term, FCmpInst::FCMP_OGE , LHS, RHS, "gecmp");
+        case LESST: 
+            this->ret = (numval1 < numval2); 
+            return new FCmpInst(term, FCmpInst::FCMP_OLE , LHS, RHS, "lecmp");
         default: return NULL;
     }
 }
 
 
 Value* IfThenCodeGen::codegen(BasicBlock* block){
-    errs()<<"ifthenCodegen!\n";
+    LOGD("IfThenCodeGen");
     LLVMContext& context = block->getParent()->getContext();
     BasicBlock* successblock = block->getSingleSuccessor();
     if(successblock == nullptr){
-        LOGE("the block has multiply successors");
+        LOGE("if then code gen has multiply successors");
         return nullptr;
     }
 
@@ -143,14 +154,16 @@ Value* IfThenCodeGen::codegen(BasicBlock* block){
 
 
 Value* SwitchCodeGen::codegen(BasicBlock* block){
+    LOGD("SwitchCodeGen");
     BasicBlock* successblock = block->getSingleSuccessor();
     if(successblock == nullptr){
-        LOGE("the block has multiply successors");
+        LOGE("switch code gen has multiply successors");
         return nullptr;
     }
     LLVMContext& context = block->getParent()->getContext();
     BasicBlock* defBlock = BasicBlock::Create(context, "defblock", block->getParent());
     BranchInst::Create(successblock, defBlock);
+
     block->getTerminator()->eraseFromParent();
     
     SwitchInst* switchI = SwitchInst::Create(this->cond, defBlock, this->condnum, block);
@@ -160,21 +173,24 @@ Value* SwitchCodeGen::codegen(BasicBlock* block){
     if(mycond) {
         mycondnum = mycond->getSExtValue();
     }else{
-        return NULL;
+        return nullptr;
     }
+    this->truecase = BasicBlock::Create(context, "truecase", block->getParent());
 
-    switchI->addCase(mycond, this->truecases);
+    switchI->addCase(mycond, this->truecase);
+    
+    BranchInst::Create(successblock, this->truecase);
 
     for(int i=0;i<this->condnum;i++){
         int num = UtilTool::getrandnum(UtilTool::MAX_NUM);
         ConstantInt* constint = ConstantInt::get(context, APInt(32, num));
-        BasicBlock* otherblock = BasicBlock::Create(context, "otherblock", block->getParent);
-        BranchInst::Create(successblock, otherblock);
+        BasicBlock* otherblock = BasicBlock::Create(context, "otherblock", block->getParent());
 
         switchI->addCase(constint, otherblock);
+        BranchInst::Create(successblock, otherblock);
         this->othercases.push_back(otherblock);
     }
-
+    return nullptr;
 }
 
 

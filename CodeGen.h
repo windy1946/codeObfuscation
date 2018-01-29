@@ -29,7 +29,7 @@
 #include <string>
 #include <vector>
 #include <string>
-
+#include "log.h"
 using namespace llvm;
 
 
@@ -41,13 +41,21 @@ public :
     }
 
     static BasicBlock* CreateBlock(BasicBlock* block){
+        BasicBlock* successor = block->getSingleSuccessor();
+        if(successor == nullptr){
+            LOGE("CREATE BLOCK HAS MULTIPLY SUCCESSOR");
+            return nullptr;
+        }
+
         LLVMContext& context = block->getParent()->getContext();
         BasicBlock* newblock = BasicBlock::Create(context, "newblock", block->getParent());
+        BranchInst::Create(successor, newblock);
         return newblock;
     }
 
     static Value* MergeBlocks(BasicBlock* block1, Value* value1, BasicBlock* block2, Value* value2, BasicBlock* mergeblock){
-        
+        block1->getTerminator()->eraseFromParent();
+        block2->getTerminator()->eraseFromParent();
         BranchInst::Create(mergeblock, block1);
         BranchInst::Create(mergeblock, block2);
         
@@ -177,7 +185,7 @@ class SwitchCodeGen : public BasicCodeGen{
     Value* cond;
     int condnum;
     std::vector<BasicBlock*> othercases;
-    BasicBlock* truecases;
+    BasicBlock* truecase;
 
 public:
     SwitchCodeGen(Value* cond, int condnum){
@@ -189,7 +197,7 @@ public:
         return this->condnum;
     }
     BasicBlock* getTruecaseBlock(){
-        return this->truecases;
+        return this->truecase;
     }
     std::vector<BasicBlock*> getOthercaseBlocks(){
         return this->othercases;

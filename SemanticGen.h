@@ -6,10 +6,12 @@
 
 class SemanticGen{
 public:
-SemanticGen(int ExpressionChoices = 2, int CmpChoices = 4, int Maxswitch = 10){
+SemanticGen(int OperatorChoices = 4, int ExpressionChoices = 2, int CmpChoices = 4, int Maxswitch = 10){
+    this->OperatorChoices = OperatorChoices;
     this->ExpressionChoices = ExpressionChoices;
     this->CmpChoices = CmpChoices;
     this->Maxswitch = Maxswitch;
+    
 }
 
 BlockInfo expressionGen(BlockInfo blockinfo){
@@ -30,6 +32,10 @@ BlockInfo expressionGen(BlockInfo blockinfo){
 
 
 BlockInfo StatementGen(BlockInfo blockinfo){
+    if(this->codenum <= 0){
+        return blockinfo;
+    };
+    this->codenum--;
     int randchoice = UtilTool::getrandnum(3);
     switch(randchoice){
         case 0:
@@ -43,6 +49,7 @@ BlockInfo StatementGen(BlockInfo blockinfo){
 
 BlockInfo ifGen(BlockInfo blockinfo){
     BasicCodeGen* bcg = NULL;
+    BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
 
     Value* randval1 = blockinfo.getValue();
     Value* randval2 = blockinfo.getValue();
@@ -60,7 +67,7 @@ BlockInfo ifGen(BlockInfo blockinfo){
     BlockInfo trueblockinfo = this->StatementGen(BlockInfo(trueblock, blockinfo.getValues()));
     BlockInfo falseblockinfo = this->StatementGen(BlockInfo(falseblock, blockinfo.getValues()));
 
-    BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
+    
 
     Value* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getValue(), 
                                                falseblockinfo.getBasicBlock(), falseblockinfo.getValue(), 
@@ -72,26 +79,29 @@ BlockInfo ifGen(BlockInfo blockinfo){
 
 BlockInfo switchGen(BlockInfo blockinfo){
     int condnum = UtilTool::getrandnum(this->Maxswitch);
+    BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
+
     SwitchCodeGen scg(blockinfo.getValue(), condnum);
     scg.codegen(blockinfo.getBasicBlock());
     std::vector<BasicBlock*> blocks;
     std::vector<Value*> values;
 
     BasicBlock* truecaseblock = scg.getTruecaseBlock();
-
-    BlockInfo truecaseblockinfo = this->StatementGen(BlockInfo(truecaseblock));
+    LOGD("TRUE CASSE BLOCK");
+    BlockInfo truecaseblockinfo = this->StatementGen(BlockInfo(truecaseblock, blockinfo.getValues()));
+    LOGD("AFTER TRUE CASE BLOCK");
     blocks.push_back(truecaseblockinfo.getBasicBlock());
     values.push_back(truecaseblockinfo.getValue());
 
     std::vector<BasicBlock*> otherblocks = scg.getOthercaseBlocks();
 
     for(int i=0;i<otherblocks.size();i++){
-        BlockInfo othercaseblocksinfo = this->StatementGen(BlockInfo(otherblocks[i]));
+        BlockInfo othercaseblocksinfo = this->StatementGen(BlockInfo(otherblocks[i],blockinfo.getValues()));
         blocks.push_back(othercaseblocksinfo.getBasicBlock());
         values.push_back(othercaseblocksinfo.getValue());
     }
 
-    BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
+    
 
     Value* phivalue = CodeGenTool::MergeBlocks(blocks, values, mergeblock);
 
@@ -99,7 +109,7 @@ BlockInfo switchGen(BlockInfo blockinfo){
 }
 
 private:
-    
+    int codenum = 20;
     int ExpressionChoices;
     int OperatorChoices;
     int Maxswitch;
