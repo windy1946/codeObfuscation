@@ -1,14 +1,45 @@
-rule:
-begin = val | bool | br | call
+Num Expressions: `a`::=`id`  variable identifier
+| `n`  integer
+| `f`  float
+| `d`  double
+| `b`  bool
+| `op1 a`  unary arithmetic op
+| `a1 op1 a2`  binary arithmetic op
+| `a1 op3 a2`  compare arithmetic op
 
-val = val+val | val-val | val/val | val*val | num | e
+Unary operators: `op1`::= `++` | `--` | `!` | `~`| `absf`
 
-bool = icmp val1, val2
+Binary operators: `op2`::= `+` | `-` | `*`| `/` | `%` | 
 
-br bool label1, label2
+Bool Expresion: `bo`::=`b` bool 
+| `a1 op3 a2`
 
-label = newblock br end
+Bool operators: `op3`::= `&` | `|` | `>` | `>=` | `<` | `<=` | `==` | `!=`  
 
-call function
+Value: `v`::=`num` | `bo`
 
-function = begin
+Value Sequence `seq`::= `end` | `v` | `vs`,`v`
+
+Function defination:  `fun`::= `id(seq) s`
+
+Statements: `s`::=`skip`  empty statement
+| `a1 = a2`  assignment
+| `fun`  function defination
+| `a = call fun`  function call
+| `if(bo) s1 else s2`  conditional if-else
+| `for(bo) s1`
+| `goto label` 
+| `switch(a)`
+| `return a`
+| `end`
+
+Switch cases  swithc(a):=case a1: s1, break;
+| default: s2;
+
+Program start: `P::=s`
+
+
+
+
+
+
