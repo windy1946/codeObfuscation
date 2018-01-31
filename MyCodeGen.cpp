@@ -52,7 +52,10 @@ namespace {
       SemanticGen semgen;
       
       BlockInfo blockinfo = semgen.StatementGen(BlockInfo(newblock));
+      LOGD("===========blockinfo values size : ");
+      LOGDLN(blockinfo.getValuesSize());
 
+      
     }
   // Hello - The first implementation, without getAnalysisUsage.
   struct MyCodeGen : public FunctionPass {
@@ -78,14 +81,14 @@ namespace {
         }
       }
       LOGD("INSERT NUMBER :");
-      LOGD(inserts.size());
+      LOGDLN(inserts.size());
       for(int i=0; i<inserts.size(); i++){
-        LOGD("----------------------------------------");
+        LOGDLN("----------------------------------------");
         Instruction* inst = inserts[i];
         insertDeadCode(inst);
       }
       
-      LOGD("FINISH");
+      LOGDLN("FINISH");
       return true;
     }
   };

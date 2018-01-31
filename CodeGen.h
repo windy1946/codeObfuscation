@@ -63,20 +63,11 @@ enum ARICHOP{ADD=0, SUB, MUL, DIV, NUM};
 class IntegerArithCodeGen : public BasicCodeGen{
     ValueInfo* val1 = nullptr;
     ValueInfo* val2 = nullptr;
-    //IntegerCodeGen* intgen1 = nullptr;
-    //IntegerCodeGen* intgen2 = nullptr;
 
     int retval;
     ARICHOP op;
     int ret;
 public:
-    /*
-    IntegerArithCodeGen(Value* val1, Value* val2, ARICHOP op){
-        this->val1 = val1;
-        this->val2 = val2;
-        this->op = op;
-    }
-    */
     IntegerArithCodeGen(ValueInfo* val1, ValueInfo* val2, ARICHOP op){
         this->val1 = val1;
         this->val2 = val2;
@@ -95,18 +86,9 @@ enum CMPOP{EQUAL=0, UEQUAL, GREATERT, LESST};
 class BoolCmpCodeGen{
     bool ret;
     ValueInfo* val1 = nullptr;
-    //IntegerCodeGen* intgen1 = nullptr;
     ValueInfo* val2 = nullptr;
-    //IntegerCodeGen* intgen2 = nullptr;
     CMPOP op;
 public:
-    /*
-    BoolCmpCodeGen(Value* val1, Value* val2, CMPOP op){
-        this->val1 = val1;
-        this->val2 = val2;
-        this->op = op;
-    }
-    */
     BoolCmpCodeGen(ValueInfo* val1, ValueInfo* val2, CMPOP op){
         this->val1 = val1;
         this->val2 = val2;
@@ -201,16 +183,7 @@ public :
         pn->addIncoming(value1->getValue(), block1);
         pn->addIncoming(value2->getValue(), block2);
 
-        /*
-        LOGD("value gen");
-        IntegerCodeGen intgen1(999);
-        IntegerCodeGen intgen2(777);
-        Value* val1 = intgen1.codegen(mergeblock);
-        Value* val2 = intgen2.codegen(mergeblock);
-        IntegerArithCodeGen intarichgen(val1, val2, (ARICHOP)0);
-        LOGD("after value gen");
-        return intarichgen.codegen(mergeblock);
-        */
+
         return new ValueInfo(value1->getNum(), pn);
     }
 

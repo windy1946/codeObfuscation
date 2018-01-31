@@ -12,7 +12,7 @@ class UtilTool{
 public:
 
     static const int MAX_NUM = 100;
-    //static int myoffsetnum;
+    
     static int getrandnum(int num){
         if(num <= 0){
             return 0;

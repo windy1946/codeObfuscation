@@ -1,4 +1,3 @@
-
 #include "IncludeFile.h"
 #include "CodeGen.h"
 #include "UtilTool.h"
@@ -22,9 +21,9 @@ BlockInfo expressionGen(BlockInfo blockinfo){
     BasicCodeGen* bcg = NULL;
     int randchoice = UtilTool::getrandnum(this->ExpressionChoices);
     switch(randchoice){
-        case 0: LOGD("value define"); bcg = this->valdefine(); break;
+        case 0: LOGDLN("value define"); bcg = this->valdefine(); break;
         case 1: 
-            LOGD("value arithcode gen");
+            LOGDLN("value arithcode gen");
             ValueInfo* randvalue1 = blockinfo.getValue();
             ValueInfo* randvalue2 = blockinfo.getValue();
             bcg = this->Op1(randvalue1, randvalue2);
@@ -42,8 +41,8 @@ BlockInfo expressionGen(BlockInfo blockinfo){
 
 
 BlockInfo StatementGen(BlockInfo blockinfo){
-    LOGD("==============================================");
-    LOGD(this->codenum);
+    LOGDLN("==============================================");
+    LOGDLN(this->codenum);
     if(this->codenum <= 0){
         return blockinfo;
     };
@@ -60,7 +59,7 @@ BlockInfo StatementGen(BlockInfo blockinfo){
 }
 
 BlockInfo ifGen(BlockInfo blockinfo){
-    LOGD("IF GEN");
+    LOGDLN("IF GEN");
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
 
     ValueInfo* randval1 = blockinfo.getValue();
@@ -69,7 +68,11 @@ BlockInfo ifGen(BlockInfo blockinfo){
     BoolCmpCodeGen* bccg = Op2(randval1, randval2);
 
     Value* boolvalue = bccg->codegen(blockinfo.getBasicBlock());
+
+
     bool boolnum = bccg->getRet(); 
+
+
     IfThenCodeGen itcg(boolvalue);
     
     itcg.codegen(blockinfo.getBasicBlock());
@@ -80,12 +83,11 @@ BlockInfo ifGen(BlockInfo blockinfo){
     BasicBlock* falseblock = itcg.getFalseBlock();
     
 
-    LOGD("BEFORE IF THEN TRUE BLOCK");
     BlockInfo trueblockinfo = this->expressionGen(BlockInfo(trueblock, blockinfo.getValues()));
-    LOGD("AFTER IF THEN TRUE BLOCK");
+
+
     BlockInfo falseblockinfo = this->expressionGen(BlockInfo(falseblock, blockinfo.getValues()));
-    LOGD("AFTEER IF THEN FALSE BLOCK");
-    
+
 
     ValueInfo* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getLastValue(), 
                                                falseblockinfo.getBasicBlock(), falseblockinfo.getLastValue(), 
@@ -105,9 +107,9 @@ BlockInfo switchGen(BlockInfo blockinfo){
     std::vector<ValueInfo*> values;
 
     BasicBlock* truecaseblock = scg.getTruecaseBlock();
-    LOGD("TRUE CASSE BLOCK");
+    LOGDLN("TRUE CASSE BLOCK");
     BlockInfo truecaseblockinfo = this->StatementGen(BlockInfo(truecaseblock, blockinfo.getValues()));
-    LOGD("AFTER TRUE CASE BLOCK");
+    LOGDLN("AFTER TRUE CASE BLOCK");
     blocks.push_back(truecaseblockinfo.getBasicBlock());
     values.push_back(truecaseblockinfo.getValue());
 
