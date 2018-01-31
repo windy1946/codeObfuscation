@@ -50,7 +50,8 @@ namespace {
       BranchInst::Create(newblock, block);
       
       SemanticGen semgen;
-      BlockInfo blockinfo = semgen.StatementGen(newblock);
+      
+      BlockInfo blockinfo = semgen.StatementGen(BlockInfo(newblock));
 
     }
   // Hello - The first implementation, without getAnalysisUsage.
@@ -59,7 +60,7 @@ namespace {
     MyCodeGen() : FunctionPass(ID) {}
     
     bool runOnFunction(Function &F) override {
-      int percent = 50; //max num : 100
+      int percent = 20; //max num : 100
       ++HelloCounter;
       int randnum = 0; 
       
@@ -76,9 +77,10 @@ namespace {
           }
         }
       }
-      
-      for(int i=0; inserts.size(); i++){
-        LOGD(i);
+      LOGD("INSERT NUMBER :");
+      LOGD(inserts.size());
+      for(int i=0; i<inserts.size(); i++){
+        LOGD("----------------------------------------");
         Instruction* inst = inserts[i];
         insertDeadCode(inst);
       }

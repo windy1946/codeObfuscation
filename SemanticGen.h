@@ -3,6 +3,10 @@
 #include "CodeGen.h"
 #include "UtilTool.h"
 #include "Common.h"
+#include "log.h"
+
+#ifndef SEMANTICGEN
+#define SEMANTICGEN
 
 class SemanticGen{
 public:
@@ -18,13 +22,19 @@ BlockInfo expressionGen(BlockInfo blockinfo){
     BasicCodeGen* bcg = NULL;
     int randchoice = UtilTool::getrandnum(this->ExpressionChoices);
     switch(randchoice){
-        case 0: bcg = this->valdefine(); break;
+        case 0: LOGD("value define"); bcg = this->valdefine(); break;
         case 1: 
-            Value* randvalue1 = blockinfo.getValue();
-            Value* randvalue2 = blockinfo.getValue();
+            LOGD("value arithcode gen");
+            ValueInfo* randvalue1 = blockinfo.getValue();
+            ValueInfo* randvalue2 = blockinfo.getValue();
             bcg = this->Op1(randvalue1, randvalue2);
+            break;
     }
-    Value* newvalue = bcg->codegen(blockinfo.getBasicBlock());
+    ValueInfo* newvalue = bcg->codegen(blockinfo.getBasicBlock());
+    if(newvalue == nullptr){
+        LOGE("newvalue is a null");
+        return blockinfo;
+    }
     blockinfo.insertValue(newvalue);
 
     return this->StatementGen(blockinfo);
@@ -32,11 +42,13 @@ BlockInfo expressionGen(BlockInfo blockinfo){
 
 
 BlockInfo StatementGen(BlockInfo blockinfo){
+    LOGD("==============================================");
+    LOGD(this->codenum);
     if(this->codenum <= 0){
         return blockinfo;
     };
     this->codenum--;
-    int randchoice = UtilTool::getrandnum(3);
+    int randchoice = UtilTool::getrandnum(2);
     switch(randchoice){
         case 0:
             return this->expressionGen(blockinfo);
@@ -48,29 +60,35 @@ BlockInfo StatementGen(BlockInfo blockinfo){
 }
 
 BlockInfo ifGen(BlockInfo blockinfo){
-    BasicCodeGen* bcg = NULL;
+    LOGD("IF GEN");
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
 
-    Value* randval1 = blockinfo.getValue();
-    Value* randval2 = blockinfo.getValue();
+    ValueInfo* randval1 = blockinfo.getValue();
+    ValueInfo* randval2 = blockinfo.getValue();
 
     BoolCmpCodeGen* bccg = Op2(randval1, randval2);
 
     Value* boolvalue = bccg->codegen(blockinfo.getBasicBlock());
-
+    bool boolnum = bccg->getRet(); 
     IfThenCodeGen itcg(boolvalue);
+    
     itcg.codegen(blockinfo.getBasicBlock());
     
     BasicBlock* trueblock = itcg.getTrueBlock();
+    
+
     BasicBlock* falseblock = itcg.getFalseBlock();
     
-    BlockInfo trueblockinfo = this->StatementGen(BlockInfo(trueblock, blockinfo.getValues()));
-    BlockInfo falseblockinfo = this->StatementGen(BlockInfo(falseblock, blockinfo.getValues()));
 
+    LOGD("BEFORE IF THEN TRUE BLOCK");
+    BlockInfo trueblockinfo = this->expressionGen(BlockInfo(trueblock, blockinfo.getValues()));
+    LOGD("AFTER IF THEN TRUE BLOCK");
+    BlockInfo falseblockinfo = this->expressionGen(BlockInfo(falseblock, blockinfo.getValues()));
+    LOGD("AFTEER IF THEN FALSE BLOCK");
     
 
-    Value* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getValue(), 
-                                               falseblockinfo.getBasicBlock(), falseblockinfo.getValue(), 
+    ValueInfo* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getLastValue(), 
+                                               falseblockinfo.getBasicBlock(), falseblockinfo.getLastValue(), 
                                                mergeblock);
 
     return this->StatementGen(BlockInfo(mergeblock, phivalue));
@@ -84,7 +102,7 @@ BlockInfo switchGen(BlockInfo blockinfo){
     SwitchCodeGen scg(blockinfo.getValue(), condnum);
     scg.codegen(blockinfo.getBasicBlock());
     std::vector<BasicBlock*> blocks;
-    std::vector<Value*> values;
+    std::vector<ValueInfo*> values;
 
     BasicBlock* truecaseblock = scg.getTruecaseBlock();
     LOGD("TRUE CASSE BLOCK");
@@ -102,8 +120,7 @@ BlockInfo switchGen(BlockInfo blockinfo){
     }
 
     
-
-    Value* phivalue = CodeGenTool::MergeBlocks(blocks, values, mergeblock);
+    ValueInfo* phivalue = CodeGenTool::MergeBlocks(blocks, values, mergeblock);
 
     return this->StatementGen(BlockInfo(mergeblock, phivalue)); 
 }
@@ -114,12 +131,12 @@ private:
     int OperatorChoices;
     int Maxswitch;
     int CmpChoices;
-    BasicCodeGen* Op1(Value* val1, Value* val2){
+    BasicCodeGen* Op1(ValueInfo* val1, ValueInfo* val2){
         int operatorchoice = UtilTool::getrandnum(this->OperatorChoices);
         return new IntegerArithCodeGen(val1, val2, (ARICHOP)operatorchoice); 
     }
 
-    BoolCmpCodeGen* Op2(Value* val1, Value* val2){
+    BoolCmpCodeGen* Op2(ValueInfo* val1, ValueInfo* val2){
         int cmpchoice = UtilTool::getrandnum(this->CmpChoices);
         return new BoolCmpCodeGen(val1, val2, (CMPOP)cmpchoice);
     }
@@ -132,3 +149,4 @@ private:
 };
 
 
+#endif
