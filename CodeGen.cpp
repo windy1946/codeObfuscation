@@ -177,9 +177,19 @@ ValueInfo* SwitchCodeGen::codegen(BasicBlock* block){
     
     BranchInst::Create(successblock, this->truecase);
 
+    int uper = mycondnum;
+    int lower = mycondnum;
+    int othercondnum = mycondnum;
     for(int i=0;i<this->condnum;i++){
-        int num = UtilTool::getrandnum(UtilTool::MAX_NUM);
-        ConstantInt* constint = ConstantInt::get(context, APInt(32, num));
+        int num = UtilTool::getrandnum(UtilTool::MAX_NUM)+1;
+        if(num > mycondnum){
+            uper = uper + num;
+            othercondnum = uper;
+        }else{
+            lower = lower - num;
+            othercondnum = lower;
+        }
+        ConstantInt* constint = ConstantInt::get(context, APInt(32, othercondnum));
         BasicBlock* otherblock = BasicBlock::Create(context, "otherblock", block->getParent());
 
         switchI->addCase(constint, otherblock);
