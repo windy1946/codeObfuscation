@@ -51,8 +51,11 @@ namespace {
       
       SemanticGen semgen;
       
-      BlockInfo blockinfo = semgen.StatementGen(BlockInfo(newblock));
+      BlockInfo blockinfo = semgen.expressionGen(BlockInfo(newblock));
+      LOGD("===========blockinfo values size : ");
+      LOGDLN(blockinfo.getValuesSize());
 
+      
     }
   // Hello - The first implementation, without getAnalysisUsage.
   struct MyCodeGen : public FunctionPass {
@@ -68,9 +71,14 @@ namespace {
       Function::iterator endbb = F.end();
       for(Function::iterator bb=F.begin(); bb!=endbb; bb++){
         BasicBlock* eachbb = &*bb;
+        if(bb->size() <= 2){
+          continue;
+        }
         BasicBlock::iterator endinst = eachbb->end();
         endinst--;
-        for(BasicBlock::iterator inst=eachbb->begin(); inst!=endinst; inst++){
+        BasicBlock::iterator inst = eachbb->begin();
+        inst++;
+        for(; inst != endinst; inst++){
           randnum = UtilTool::getrandnum(100);
           if(randnum < percent){
             inserts.push_back(&*inst);
@@ -78,14 +86,14 @@ namespace {
         }
       }
       LOGD("INSERT NUMBER :");
-      LOGD(inserts.size());
+      LOGDLN(inserts.size());
       for(int i=0; i<inserts.size(); i++){
-        LOGD("----------------------------------------");
+        LOGDLN("----------------------------------------");
         Instruction* inst = inserts[i];
         insertDeadCode(inst);
       }
       
-      LOGD("FINISH");
+      LOGDLN("FINISH");
       return true;
     }
   };

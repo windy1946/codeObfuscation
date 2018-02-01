@@ -5,6 +5,8 @@
 
 #ifdef NDEBUG
 #define LOGD(fmt)
+#define LOGDLN(fmt)
 #else
-#define LOGD(fmt) llvm::errs()<<"D::"<<fmt<<"\n";
+#define LOGD(fmt) llvm::errs()<<"D::"<<fmt;
+#define LOGDLN(fmt) llvm::errs()<<"D::"<<fmt<<"\n";
 #endif
