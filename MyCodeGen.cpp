@@ -51,7 +51,7 @@ namespace {
       
       SemanticGen semgen;
       
-      BlockInfo blockinfo = semgen.StatementGen(BlockInfo(newblock));
+      BlockInfo blockinfo = semgen.expressionGen(BlockInfo(newblock));
       LOGD("===========blockinfo values size : ");
       LOGDLN(blockinfo.getValuesSize());
 
@@ -71,9 +71,14 @@ namespace {
       Function::iterator endbb = F.end();
       for(Function::iterator bb=F.begin(); bb!=endbb; bb++){
         BasicBlock* eachbb = &*bb;
+        if(bb->size() <= 2){
+          continue;
+        }
         BasicBlock::iterator endinst = eachbb->end();
         endinst--;
-        for(BasicBlock::iterator inst=eachbb->begin(); inst!=endinst; inst++){
+        BasicBlock::iterator inst = eachbb->begin();
+        inst++;
+        for(; inst != endinst; inst++){
           randnum = UtilTool::getrandnum(100);
           if(randnum < percent){
             inserts.push_back(&*inst);

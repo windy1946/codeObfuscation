@@ -195,11 +195,15 @@ public :
         int num = blocks.size();
         LLVMContext& context = mergeblock->getContext();
         IRBuilder<> builder(mergeblock);
+        Instruction* beginst = &*(mergeblock->begin());
+        builder.SetInsertPoint(beginst);
         PHINode* pn = builder.CreatePHI(Type::getInt32Ty(context), num, "phi");
         
         for(int i=0; i<num; i++){
             BasicBlock* block = blocks[i];
             Value* value = values[i]->getValue();
+            block->getTerminator()->eraseFromParent();
+            BranchInst::Create(mergeblock, block);
             pn->addIncoming(value, block);
         }
         int pnnum = values[0]->getNum();

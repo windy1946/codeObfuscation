@@ -161,13 +161,15 @@ ValueInfo* SwitchCodeGen::codegen(BasicBlock* block){
     
     SwitchInst* switchI = SwitchInst::Create(this->cond->getValue(), defBlock, this->condnum, block);
     
-    ConstantInt* mycond = dyn_cast<ConstantInt>(this->cond->getValue());
-    if(mycond == nullptr){
-        LOGE("SWITCH COND IS NULL");
-        return nullptr;
-    }
+    //ConstantInt* mycond = dyn_cast<ConstantInt>(this->cond->getValue());
+    //if(mycond == nullptr){
+        //LOGE("SWITCH COND IS NULL");
+        //return nullptr;
+    //}
 
     int mycondnum = this->cond->getNum();
+    
+    ConstantInt* mycond = ConstantInt::get(context, APInt(32, mycondnum));
 
     this->truecase = BasicBlock::Create(context, "truecase", block->getParent());
 

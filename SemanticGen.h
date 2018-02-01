@@ -47,13 +47,15 @@ BlockInfo StatementGen(BlockInfo blockinfo){
         return blockinfo;
     };
     this->codenum--;
-    int randchoice = UtilTool::getrandnum(2);
+    int randchoice = UtilTool::getrandnum(5);
     switch(randchoice){
         case 0:
-            return this->expressionGen(blockinfo);
         case 1:
-            return this->ifGen(blockinfo);
         case 2:
+            return this->expressionGen(blockinfo);
+        case 3:
+            return this->ifGen(blockinfo);
+        case 4:
             return this->switchGen(blockinfo);
     }
 }
@@ -93,11 +95,16 @@ BlockInfo ifGen(BlockInfo blockinfo){
                                                falseblockinfo.getBasicBlock(), falseblockinfo.getLastValue(), 
                                                mergeblock);
 
-    return this->StatementGen(BlockInfo(mergeblock, phivalue));
+    BlockInfo mergeblockinfo(mergeblock, blockinfo.getValues());
+    mergeblockinfo.insertValue(phivalue);
+
+
+    return this->StatementGen(mergeblockinfo);
 
 }   
 
 BlockInfo switchGen(BlockInfo blockinfo){
+    LOGDLN("Switchc gen");
     int condnum = UtilTool::getrandnum(this->Maxswitch);
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
 
@@ -108,23 +115,25 @@ BlockInfo switchGen(BlockInfo blockinfo){
 
     BasicBlock* truecaseblock = scg.getTruecaseBlock();
     LOGDLN("TRUE CASSE BLOCK");
-    BlockInfo truecaseblockinfo = this->StatementGen(BlockInfo(truecaseblock, blockinfo.getValues()));
+    BlockInfo truecaseblockinfo = this->expressionGen(BlockInfo(truecaseblock, blockinfo.getValues()));
     LOGDLN("AFTER TRUE CASE BLOCK");
     blocks.push_back(truecaseblockinfo.getBasicBlock());
-    values.push_back(truecaseblockinfo.getValue());
+    values.push_back(truecaseblockinfo.getLastValue());
 
     std::vector<BasicBlock*> otherblocks = scg.getOthercaseBlocks();
 
     for(int i=0;i<otherblocks.size();i++){
-        BlockInfo othercaseblocksinfo = this->StatementGen(BlockInfo(otherblocks[i],blockinfo.getValues()));
+        BlockInfo othercaseblocksinfo = this->expressionGen(BlockInfo(otherblocks[i],blockinfo.getValues()));
         blocks.push_back(othercaseblocksinfo.getBasicBlock());
-        values.push_back(othercaseblocksinfo.getValue());
+        values.push_back(othercaseblocksinfo.getLastValue());
     }
 
     
     ValueInfo* phivalue = CodeGenTool::MergeBlocks(blocks, values, mergeblock);
+    BlockInfo mergeblockinfo(mergeblock, blockinfo.getValues());
+    mergeblockinfo.insertValue(phivalue);
 
-    return this->StatementGen(BlockInfo(mergeblock, phivalue)); 
+    return this->StatementGen(mergeblockinfo); 
 }
 
 private:
