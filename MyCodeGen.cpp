@@ -36,6 +36,12 @@ STATISTIC(HelloCounter, "Counts number of functions greeted");
 
 
 namespace {
+  void DeadcodeGen(BasicBlock* block){
+    SemanticGen semgen;
+    BlockPath::InsertBlock(block);
+    BlockInfo blockinfo = semgen.expressionGen(BlockInfo(block));
+    
+  }
 
   void insertDeadCode(Instruction* inst){
       BasicBlock* block = inst->getParent();

@@ -5,24 +5,38 @@
 
 using namespace llvm;
 
-/*
+
 class BlockPath{
 public:
-    static void InsertBlock(BasicBlock* block);
-    static std::vector<BasicBlock*> getBlocks();
+    static void InsertBlock(BasicBlock* block){
+        blocks.push_back(block);
+    };
+    static std::vector<BasicBlock*> getBlocks(){
+        return blocks;
+    };
 private:
     static std::vector<BasicBlock*> blocks;    
 };
 
 
+
 class ValuesUse{
 public:
-    static void InsertValue(Value* value);
-    static std::vector<Value*> getValues();
+    static void setValues(std::vector<Value*> tvalues){
+        for(int i=0;i<tvalues.size();i++){
+            values.push_back(tvalues[i]);
+        }
+    }
+    static std::vector<Value*> getValues(){
+        return values;
+    };
+    static Value* getValue(int i){
+        return values[i];
+    }
 private:
     static std::vector<Value*> values;
 };
-*/
+
 
 class ValueInfo{
 public:
