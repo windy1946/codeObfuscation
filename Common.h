@@ -1,41 +1,9 @@
 #include "IncludeFile.h"
-
+#include "UtilTool.h"
 #ifndef COMMON
 #define COMMON
 
 using namespace llvm;
-
-
-class BlockPath{
-public:
-    static void InsertBlock(BasicBlock* block){
-        blocks.push_back(block);
-    };
-    static std::vector<BasicBlock*> getBlocks(){
-        return blocks;
-    };
-private:
-    static std::vector<BasicBlock*> blocks;    
-};
-
-
-
-class ValuesUse{
-public:
-    static void setValues(std::vector<Value*> tvalues){
-        for(int i=0;i<tvalues.size();i++){
-            values.push_back(tvalues[i]);
-        }
-    }
-    static std::vector<Value*> getValues(){
-        return values;
-    };
-    static Value* getValue(int i){
-        return values[i];
-    }
-private:
-    static std::vector<Value*> values;
-};
 
 
 class ValueInfo{
@@ -52,11 +20,12 @@ private:
 
 };
 
+
 class BlockInfo{
 public:
-    BlockInfo(BasicBlock* block, std::vector<ValueInfo*> values);
-    BlockInfo(BasicBlock* block, ValueInfo* value);
-    BlockInfo(BasicBlock* block);
+    BlockInfo(BasicBlock* block, std::vector<ValueInfo*> values, int childblocknum = 10);
+    BlockInfo(BasicBlock* block, ValueInfo* value, int childblocknum = 10);
+    BlockInfo(BasicBlock* block, int childblocknum = 10);
 
     void insertValue(ValueInfo* value);
     std::vector<ValueInfo*> getValues();
@@ -64,10 +33,61 @@ public:
     int getValuesSize();
     ValueInfo* getValue();
     ValueInfo* getLastValue();
+    void setChildblockNum(int num){
+        this->childblocknum = num;
+    }
+    int getChildblockNum(){
+        return this->childblocknum;
+    }
 private:
     BasicBlock* block;
     std::vector<ValueInfo*> values;
+    int childblocknum;
 };
+
+
+//static std::vector<BasicBlock*> blocks;
+
+static std::vector<BasicBlock*> blocks;   
+
+class BlockPath{
+public:
+    static void InsertBlock(BasicBlock* block){
+        blocks.push_back(block);
+    };
+    static std::vector<BasicBlock*> getBlocks(){
+        return blocks;
+    };
+private:
+     
+};
+
+
+static std::vector<ValueInfo*> values;
+
+class ValuesUse{
+public:
+    static void setValues(std::vector<ValueInfo*> tvalues){
+        for(int i=0;i<tvalues.size();i++){
+            values.push_back(tvalues[i]);
+        }
+    }
+
+    static std::vector<ValueInfo*> getValues(){
+        return values;
+    };
+
+    static ValueInfo* getValue(int i){
+        return values[i];
+    }
+
+    static ValueInfo* getValue(){
+        int index = UtilTool::getrandnum(values.size());
+        return values[index];
+    }
+
+};
+
 
 
 /*

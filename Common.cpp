@@ -5,26 +5,6 @@
 
 using namespace llvm;
 
-/*
-static void BlockPath::InsertBlock(BasicBlock* block){
-    blocks.push_back(block);
-}
-    
-static std::vector<BasicBlock*> BlockPath::getBlocks(){
-    return blocks;
-}
-
-
-
-static void ValuesUse::InsertValue(Value* value){
-    values.push_back(value);
-}
-
-static std::vector<Value*> ValuesUse::getValues(){
-    return values;
-}
-*/
-
 
 ValueInfo::ValueInfo(int num, Value* value){
     this->num = num;
@@ -39,17 +19,19 @@ Value* ValueInfo::getValue(){
     return this->value;
 }
 
-
-BlockInfo::BlockInfo(BasicBlock* block, std::vector<ValueInfo*> values){
+BlockInfo::BlockInfo(BasicBlock* block, std::vector<ValueInfo*> values, int childblocknum){
     this->block = block;
     this->values = std::vector<ValueInfo*>(values);
+    this->childblocknum = childblocknum;
 };
-BlockInfo::BlockInfo(BasicBlock* block, ValueInfo* value){
+BlockInfo::BlockInfo(BasicBlock* block, ValueInfo* value, int childblocknum){
     this->block = block;
     this->values.push_back(value);
+    this->childblocknum = childblocknum;
 }
-BlockInfo::BlockInfo(BasicBlock* block){
+BlockInfo::BlockInfo(BasicBlock* block, int childblocknum){
     this->block = block;
+    this->childblocknum = childblocknum;
 }
 
 void BlockInfo::insertValue(ValueInfo* value){

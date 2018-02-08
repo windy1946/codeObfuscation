@@ -26,28 +26,91 @@
 #include "Common.h"
 #include "SemanticGen.h"
 
+#include "SemanticGen0.h"
 #include <vector>
 
 using namespace llvm;
 
 #define DEBUG_TYPE "mycodegen"
 
+
 STATISTIC(HelloCounter, "Counts number of functions greeted");
 
 
 namespace {
-  void DeadcodeGen(BasicBlock* block){
+
+  //return true if it has been chosen;
+  bool ischoose(std::vector<BasicBlock*> blockslink, BasicBlock* block){
+    for(int i=0; i<blockslink.size(); i++){
+      if(blockslink[i] == block){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  std::vector<BasicBlock*> getBlocksLink(Function* f){
+    std::vector<BasicBlock*> blockslink;
+    Function::iterator bb=f->begin();
+    Function::iterator endbb=f->end();
+    blockslink.push_back(&*bb);
+    bb++;
+    for(; bb!=endbb; bb++){
+      BasicBlock* tbb = &*bb;
+      TerminatorInst* terminst = tbb->getTerminator();
+      int succnum = terminst->getNumSuccessors();
+      if(succnum <= 0){
+        return blockslink;
+      }
+      BasicBlock* nextbb = terminst->getSuccessor(0);
+      if(ischoose(blockslink, nextbb)){
+        return blockslink;
+      }else{
+        blockslink.push_back(nextbb);
+      }
+    }
+
+    return blockslink;
+
+  }
+  void DeadcodeGen(Function* f){
+    std::vector<BasicBlock*> blockslink = getBlocksLink(f);
+
+    BasicBlock* entryblock = &*(f->begin());
+    Instruction* beginst = &*(entryblock->begin());
+    BasicBlock* restblock = entryblock->splitBasicBlock(beginst);
+
+    Instruction* nextbeginst = &*(restblock->begin());
+    BasicBlock* nextrestblock = restblock->splitBasicBlock(nextbeginst);
+
+    blockslink[0] = nextrestblock;
+
+//--------------------------------------------------------------
+      
     SemanticGen semgen;
-    BlockPath::InsertBlock(block);
-    BlockInfo blockinfo = semgen.expressionGen(BlockInfo(block));
+      
+    BlockInfo blockinfo = semgen.expressionGen(BlockInfo(entryblock));
+    //return blockinfo;
+    LOGD("===========blockinfo values size : ");
+    LOGDLN(blockinfo.getValuesSize());
+//------------------------------------------------------------------
     
+    SemanticGen0 semgent0(blockinfo.getValues(), restblock);
+
+    semgent0.expressionGen(BlockInfo(restblock));
+
+    std::vector<BasicBlock*> blocks1 = semgent0.getBlocksLink();
+
+    CodeGenTool::MixBlockLinks(blocks1, blockslink);
+
+    CodeGenTool::myFixStack(f);
   }
 
   void insertDeadCode(Instruction* inst){
       BasicBlock* block = inst->getParent();
       BasicBlock* restblock = block->splitBasicBlock(inst, "restbb");
       if(restblock == nullptr){
-        return;
+        return ;
       }
       BasicBlock* newblock = BasicBlock::Create(block->getContext(), "newblock", block->getParent());
       BranchInst::Create(restblock, newblock);
@@ -58,6 +121,7 @@ namespace {
       SemanticGen semgen;
       
       BlockInfo blockinfo = semgen.expressionGen(BlockInfo(newblock));
+      //return blockinfo;
       LOGD("===========blockinfo values size : ");
       LOGDLN(blockinfo.getValuesSize());
 
@@ -69,6 +133,9 @@ namespace {
     MyCodeGen() : FunctionPass(ID) {}
     
     bool runOnFunction(Function &F) override {
+
+      DeadcodeGen(&F);
+      /*
       int percent = 20; //max num : 100
       ++HelloCounter;
       int randnum = 0; 
@@ -98,7 +165,7 @@ namespace {
         Instruction* inst = inserts[i];
         insertDeadCode(inst);
       }
-      
+      */
       LOGDLN("FINISH");
       return true;
     }

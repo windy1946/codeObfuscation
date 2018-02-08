@@ -18,10 +18,11 @@ add_llvm_loadable_module( MyDeadCodeGen
   Common.h
   log.h
   SemanticGen.h
+  SemanticGen0.h
   UtilTool.h
   IncludeFile.h
   Common.cpp
-  
+    
   DEPENDS
   intrinsics_gen
   PLUGIN_TOOL
