@@ -23,9 +23,11 @@ BlockInfo expressionGen(BlockInfo blockinfo){
     BasicCodeGen* bcg = NULL;
     int randchoice = UtilTool::getrandnum(this->ExpressionChoices);
     switch(randchoice){
-        case 0: LOGDLN("value define"); bcg = this->valdefine(); break;
+        case 0: 
+            //LOGDLN("value define"); 
+            bcg = this->valdefine(); break;
         case 1: 
-            LOGDLN("value arithcode gen");
+            //LOGDLN("value arithcode gen");
             ValueInfo* randvalue1 = blockinfo.getValue();
             ValueInfo* randvalue2 = blockinfo.getValue();
             bcg = this->Op1(randvalue1, randvalue2);
@@ -43,13 +45,14 @@ BlockInfo expressionGen(BlockInfo blockinfo){
 
 
 BlockInfo StatementGen(BlockInfo blockinfo){
-    LOGDLN("==============================================");
-    LOGDLN(this->codenum);
+    //LOGDLN("==============================================");
+    //LOGDLN(this->codenum);
     if(this->codenum <= 0){
         return blockinfo;
     };
     this->codenum--;
     int randchoice = UtilTool::getrandnum(5);
+    //LOGDLN(randchoice);
     switch(randchoice){
         case 0:
         case 1:
@@ -63,19 +66,30 @@ BlockInfo StatementGen(BlockInfo blockinfo){
 }
 
 BlockInfo ifGen(BlockInfo blockinfo){
-    LOGDLN("IF GEN");
+    //LOGDLN("IF GEN");
 
     if(blockinfo.getChildblockNum() <= 1){
-        LOGDLN("child block is 0");
+        //LOGDLN("child block is 0");
         return blockinfo;
     }
 
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
     int mergeblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
+    ValueInfo* randval1 ;//= this->getValueInfo();//blockinfo.getValue();
+    ValueInfo* randval2 ;
+    
+    //如果是不会经过的结点
+    if(!blockinfo.getFlag()){
+        randval1 = blockinfo.getValue();
+        randval2 = blockinfo.getValue();
+    }else{
+        randval1 = this->getValueInfo();
+        randval2 = this->getValueInfo();
+    }
 
-    ValueInfo* randval1 = this->getValueInfo();//blockinfo.getValue();
-    ValueInfo* randval2 = this->getValueInfo();//blockinfo.getValue();
+    //ValueInfo* randval1 = this->getValueInfo();//blockinfo.getValue();
+    //ValueInfo* randval2 = this->getValueInfo();//blockinfo.getValue();
 
     BoolCmpCodeGen* bccg = Op2(randval1, randval2);
 
@@ -93,25 +107,43 @@ BlockInfo ifGen(BlockInfo blockinfo){
     BasicBlock* falseblock = itcg.getFalseBlock();
     int falseblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
-    if(boolnum){
-        this->blockslink.push_back(trueblock);
-    }else{
-        this->blockslink.push_back(falseblock);
+    BlockInfo cur_trueblockinfo(trueblock, blockinfo.getValues(), trueblockchildnum);
+    BlockInfo cur_falseblockinfo(falseblock, blockinfo.getValues(), falseblockchildnum);
+
+    //---------将block添加进去。
+    if(blockinfo.getFlag()){
+        if(boolnum){
+            this->blockslink.push_back(trueblock);
+            cur_trueblockinfo.setFlag(true);
+        }else{
+            this->blockslink.push_back(falseblock);
+            cur_falseblockinfo.setFlag(true);
+        }
     }
+    
 
-    BlockInfo trueblockinfo = this->expressionGen(BlockInfo(trueblock, blockinfo.getValues(), trueblockchildnum));
+    BlockInfo trueblockinfo = this->expressionGen(cur_trueblockinfo);
 
 
-    BlockInfo falseblockinfo = this->expressionGen(BlockInfo(falseblock, blockinfo.getValues(), falseblockchildnum));
+    BlockInfo falseblockinfo = this->expressionGen(cur_falseblockinfo);
 
 
     ValueInfo* phivalue = CodeGenTool::MergeBlocks(trueblockinfo.getBasicBlock(),trueblockinfo.getLastValue(), 
                                                falseblockinfo.getBasicBlock(), falseblockinfo.getLastValue(), 
                                                mergeblock);
 
-    LOGDLN("MERGE BLOCK GEN");
-    this->blockslink.push_back(mergeblock);
+    //LOGDLN("MERGE BLOCK GEN");
+      
+    
+    
     BlockInfo mergeblockinfo(mergeblock, blockinfo.getValues(), mergeblockchildnum);
+    
+    if(blockinfo.getFlag()){
+        this->blockslink.push_back(mergeblock);
+        mergeblockinfo.setFlag(true);
+    } 
+
+
     mergeblockinfo.insertValue(phivalue);
 
 
@@ -119,37 +151,52 @@ BlockInfo ifGen(BlockInfo blockinfo){
 
 }   
 
+
 BlockInfo switchGen(BlockInfo blockinfo){
-    LOGD("child block is : ");
-    LOGDLN(blockinfo.getChildblockNum());
-    LOGDLN("Switchc gen");
+    
     if(blockinfo.getChildblockNum() <= 1){
-        LOGDLN("child block is 0");
         return blockinfo;
     }
 
     int condnum = UtilTool::getrandnum(this->Maxswitch)+1;
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
     int mergeblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum() - 1);
+    
     //------------------------------------------------------------
-    SwitchCodeGen scg(this->getValueInfo(), condnum);
+    ValueInfo* switchvalinfo;
+    if(blockinfo.getFlag()){
+        switchvalinfo = this->getValueInfo();
+    }else{
+        switchvalinfo = blockinfo.getValue();
+    }
+
+    SwitchCodeGen scg(switchvalinfo, condnum);
     //------------------------------------------------------------
+
+
     scg.codegen(blockinfo.getBasicBlock());
+
     std::vector<BasicBlock*> blocks;
     std::vector<ValueInfo*> values;
 
     BasicBlock* truecaseblock = scg.getTruecaseBlock();
     int truecaseblocknum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
-    LOGDLN("TRUE CASSE BLOCK");
+    //LOGDLN("TRUE CASSE BLOCK");
     int truecaseblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
     //----------------------------------
-    this->blockslink.push_back(truecaseblock);
-    //----------------------------------
-    BlockInfo truecaseblockinfo = this->expressionGen(BlockInfo(truecaseblock, blockinfo.getValues(), truecaseblockchildnum));
+    BlockInfo cur_truecaseblockinfo(truecaseblock, blockinfo.getValues(), truecaseblockchildnum);
     
-    LOGDLN("AFTER TRUE CASE BLOCK");
+    if(blockinfo.getFlag()){
+        this->blockslink.push_back(truecaseblock);
+        cur_truecaseblockinfo.setFlag(true);
+    }
+    //----------------------------------
+    
+    BlockInfo truecaseblockinfo = this->expressionGen(cur_truecaseblockinfo);
+    
+    //LOGDLN("AFTER TRUE CASE BLOCK");
 
     blocks.push_back(truecaseblockinfo.getBasicBlock());
     values.push_back(truecaseblockinfo.getLastValue());
@@ -163,20 +210,30 @@ BlockInfo switchGen(BlockInfo blockinfo){
         values.push_back(othercaseblocksinfo.getLastValue());
     }
 
-    LOGDLN("MERGE BLOCK GEN");
+    //LOGDLN("MERGE BLOCK GEN");
     ValueInfo* phivalue = CodeGenTool::MergeBlocks(blocks, values, mergeblock);
     BlockInfo mergeblockinfo(mergeblock, blockinfo.getValues(), mergeblockchildnum);
     mergeblockinfo.insertValue(phivalue);
+    
+    
     //----------------------------------------
-    this->blockslink.push_back(mergeblock);
-    //----------------------------------------
-    return this->expressionGen(mergeblockinfo); 
-}
-    std::vector<BasicBlock*> getBlocksLink(){
-        return this->blockslink;
+    if(blockinfo.getFlag()){
+        this->blockslink.push_back(mergeblock);
+        mergeblockinfo.setFlag(true);
     }
+    //----------------------------------------
+    
+    return this->expressionGen(mergeblockinfo); 
+
+}
+
+
+std::vector<BasicBlock*> getBlocksLink(){
+        return this->blockslink;
+}
+
 private:
-    int codenum = 200;
+    int codenum = 300;
     int ExpressionChoices;
     int OperatorChoices;
     int Maxswitch;

@@ -6,7 +6,7 @@
 #ifndef UTILTOOL
 #define UTILTOOL
 
-static int myoffsetnum = 44;
+static long myoffsetnum = 44;
 
 class UtilTool{
 public:
@@ -18,7 +18,9 @@ public:
             return 0;
         }
         myoffsetnum++;
-        srand((unsigned)time(NULL));
+
+        srand(time(NULL));
+
         return (int)((rand()+myoffsetnum)%num);
     }
 

@@ -38,7 +38,7 @@
 using namespace llvm;
 
 ValueInfo* IntegerCodeGen::codegen(BasicBlock* block){
-    LOGDLN("IntegerCodeGen");
+    //LOGDLN("IntegerCodeGen");
     LLVMContext& context = block->getParent()->getContext();
     Value* value = ConstantInt::get(context, APInt(this->intNumbit, this->num));
     return new ValueInfo(this->num, value);
@@ -47,7 +47,7 @@ ValueInfo* IntegerCodeGen::codegen(BasicBlock* block){
 
 
 ValueInfo* IntegerArithCodeGen::codegen(BasicBlock* block){
-    LOGDLN("IntegerArithCodeGen");
+    //LOGDLN("IntegerArithCodeGen");
     
     int numval1 = this->val1->getNum();
     int numval2 = this->val2->getNum();
@@ -61,22 +61,22 @@ ValueInfo* IntegerArithCodeGen::codegen(BasicBlock* block){
         
     switch(this->op){
         case ADD:
-            LOGDLN("ADD");
+            //LOGDLN("ADD");
             binop = BinaryOperator::Create(Instruction::Add, LHS, RHS, "addtmp", &*inst);
             this->ret = numval1 + numval2;
             break;
         case SUB:
-            LOGDLN("SUB");
+            //LOGDLN("SUB");
             binop = BinaryOperator::Create(Instruction::Sub, LHS, RHS, "subtmp", &*inst);
             this->ret = numval1 - numval2;
             break;
         case MUL:
-            LOGDLN("MUL");
+            //LOGDLN("MUL");
             binop = BinaryOperator::Create(Instruction::Mul, LHS, RHS, "multmp", &*inst);
             this->ret = numval1 * numval2;
             break;
         case DIV:
-            LOGDLN("DIV");
+            //LOGDLN("DIV");
             binop = BinaryOperator::Create(Instruction::SDiv, LHS, RHS, "divtmp", &*inst);
             this->ret = numval1 / numval2;
             break;
@@ -86,7 +86,7 @@ ValueInfo* IntegerArithCodeGen::codegen(BasicBlock* block){
 
 
 Value* BoolCmpCodeGen::codegen(BasicBlock* block){
-    LOGDLN("BoolCmpCodeGen");
+    //LOGDLN("BoolCmpCodeGen");
     
     Value* LHS = this->val1->getValue();
     Value* RHS = this->val2->getValue();
@@ -101,19 +101,19 @@ Value* BoolCmpCodeGen::codegen(BasicBlock* block){
 
     switch(op){
         case EQUAL: 
-            LOGDLN("EQUAL");
+            //LOGDLN("EQUAL");
             this->ret = (numval1 == numval2); 
             return builder.CreateICmpEQ(LHS, RHS, "equal");
         case UEQUAL: 
-            LOGDLN("UEQUAL");
+            //LOGDLN("UEQUAL");
             this->ret = (numval1 != numval2); 
             return builder.CreateICmpNE(LHS, RHS, "uequal");
         case GREATERT:
-            LOGDLN("GREATERR"); 
+            //LOGDLN("GREATERR"); 
             this->ret = (numval1 > numval2); 
             return builder.CreateICmpSGT(LHS, RHS, "greater");
         case LESST: 
-            LOGDLN("LESST");
+            //LOGDLN("LESST");
             this->ret = (numval1 < numval2); 
             return builder.CreateICmpSLE(LHS, RHS, "lesst");
         default: return nullptr;
@@ -122,7 +122,7 @@ Value* BoolCmpCodeGen::codegen(BasicBlock* block){
 
 
 ValueInfo* IfThenCodeGen::codegen(BasicBlock* block){
-    LOGDLN("IfThenCodeGen");
+    //LOGDLN("IfThenCodeGen");
     LLVMContext& context = block->getParent()->getContext();
     BasicBlock* successblock = block->getSingleSuccessor();
     if(successblock == nullptr){
@@ -147,7 +147,7 @@ ValueInfo* IfThenCodeGen::codegen(BasicBlock* block){
 
 
 ValueInfo* SwitchCodeGen::codegen(BasicBlock* block){
-    LOGDLN("SwitchCodeGen");
+    //LOGDLN("SwitchCodeGen");
     BasicBlock* successblock = block->getSingleSuccessor();
     if(successblock == nullptr){
         LOGE("switch code gen has multiply successors");

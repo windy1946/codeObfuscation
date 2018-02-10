@@ -23,15 +23,18 @@ BlockInfo::BlockInfo(BasicBlock* block, std::vector<ValueInfo*> values, int chil
     this->block = block;
     this->values = std::vector<ValueInfo*>(values);
     this->childblocknum = childblocknum;
+    this->flag = false;
 };
 BlockInfo::BlockInfo(BasicBlock* block, ValueInfo* value, int childblocknum){
     this->block = block;
     this->values.push_back(value);
     this->childblocknum = childblocknum;
+    this->flag = false;
 }
 BlockInfo::BlockInfo(BasicBlock* block, int childblocknum){
     this->block = block;
     this->childblocknum = childblocknum;
+    this->flag = false;
 }
 
 void BlockInfo::insertValue(ValueInfo* value){

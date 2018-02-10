@@ -49,14 +49,42 @@ namespace {
     return false;
   }
 
-  std::vector<BasicBlock*> getBlocksLink(Function* f){
+
+///该函数需要后期继续改进。。。。
+  std::vector<BasicBlock*> getBlocksLink(Function* f, int num){
+    
+    std::vector<Instruction*> instlist;
+    for(Function::iterator tbb=f->begin(), tendbb=f->end(); tbb!=tendbb; tbb++){
+      BasicBlock* ttbb = &*tbb;
+      BasicBlock::iterator tinst=ttbb->begin();
+      tinst++;
+      BasicBlock::iterator tendinst=ttbb->end();
+      for( ;tinst!=tendinst; tinst++){
+        int randnum = UtilTool::getrandnum(100);
+        if(randnum < num){
+          instlist.push_back(&*tinst);
+        }
+      }
+    }
+    
+    for(int i=0; i<instlist.size(); i++){
+      Instruction* inst = instlist[i];
+      BasicBlock* block = inst->getParent();
+      block->splitBasicBlock(inst);
+    }
+    
+
     std::vector<BasicBlock*> blockslink;
     Function::iterator bb=f->begin();
     Function::iterator endbb=f->end();
     blockslink.push_back(&*bb);
     bb++;
-    for(; bb!=endbb; bb++){
-      BasicBlock* tbb = &*bb;
+    BasicBlock* tbb = &*bb;
+
+    while(true){
+      
+      //blockslink.push_back(tbb);
+      
       TerminatorInst* terminst = tbb->getTerminator();
       int succnum = terminst->getNumSuccessors();
       if(succnum <= 0){
@@ -68,13 +96,27 @@ namespace {
       }else{
         blockslink.push_back(nextbb);
       }
+      tbb = nextbb;
     }
-
+/*
+//-----------------bug--------------------------------
+    for(Function::iterator bb=f->begin(), endbb=f->end(); bb!=endbb; bb++){
+      BasicBlock* block = &*bb;
+      if(!ischoose(blockslink, block)){
+        blockslink.push_back(block);
+      }
+    }
+//----------------------------------------------------
+*/
     return blockslink;
 
   }
+
   void DeadcodeGen(Function* f){
-    std::vector<BasicBlock*> blockslink = getBlocksLink(f);
+    LOGDLN("-----------begin-------------");
+    LOGDLN(f->getName());
+
+    std::vector<BasicBlock*> blockslink = getBlocksLink(f, 20);
 
     BasicBlock* entryblock = &*(f->begin());
     Instruction* beginst = &*(entryblock->begin());
@@ -88,18 +130,33 @@ namespace {
 //--------------------------------------------------------------
       
     SemanticGen semgen;
-      
-    BlockInfo blockinfo = semgen.expressionGen(BlockInfo(entryblock));
+    BlockInfo cur_blockinfo(entryblock);
+    cur_blockinfo.setChildblockNum(10);
+    BlockInfo blockinfo = semgen.expressionGen(cur_blockinfo);
     //return blockinfo;
-    LOGD("===========blockinfo values size : ");
-    LOGDLN(blockinfo.getValuesSize());
+
+    //LOGD("===========blockinfo values size : ");
+    //LOGDLN(blockinfo.getValuesSize());
 //------------------------------------------------------------------
     
     SemanticGen0 semgent0(blockinfo.getValues(), restblock);
 
-    semgent0.expressionGen(BlockInfo(restblock));
+    BlockInfo restblockinfo(restblock);
+    restblockinfo.setFlag(true);
+    restblockinfo.setChildblockNum(40);
+
+    semgent0.expressionGen(restblockinfo);
 
     std::vector<BasicBlock*> blocks1 = semgent0.getBlocksLink();
+    
+    LOGD("-------------------------BLOCK VALUES NUM: ");
+    LOGDLN(blockinfo.getValuesSize());
+
+    LOGD("------------------------blocks1 links size : ");
+    LOGDLN(blocks1.size());
+    
+    LOGD("------------------------blocks2 links size : ");
+    LOGDLN(blockslink.size());
 
     CodeGenTool::MixBlockLinks(blocks1, blockslink);
 

@@ -39,15 +39,23 @@ public:
     int getChildblockNum(){
         return this->childblocknum;
     }
+
+    bool getFlag(){
+        return this->flag;
+    }
+    bool setFlag(bool flag){
+        this->flag = flag;
+    }
 private:
     BasicBlock* block;
     std::vector<ValueInfo*> values;
     int childblocknum;
+    bool flag;
 };
 
 
 //static std::vector<BasicBlock*> blocks;
-
+/*
 static std::vector<BasicBlock*> blocks;   
 
 class BlockPath{
@@ -87,8 +95,7 @@ public:
     }
 
 };
-
-
+*/
 
 /*
 class BlockPath{

@@ -160,7 +160,7 @@ public :
     //(3)blocks1.length < blocks2.length
     //blocks1.a->blocks2.a->blocks1.b->blocks2.b->...->blocks1.n->blocks2.k->blocks2.k+1->...->blocks2.n
     //blocks1.a may has multiply successor.
-
+//该函数需要后期再改进。。。。
     static void MixBlockLinks(std::vector<BasicBlock*> blocks1, std::vector<BasicBlock*> blocks2){
         BasicBlock* blocks1_a;
         BasicBlock* blocks1_b;
@@ -189,8 +189,10 @@ public :
             for(int j=0; j<successornum; j++){
                 BasicBlock* successorbb = term1_a->getSuccessor(j);
                 if(successorbb == blocks1_b){
+                    LOGDLN("set successor");
                     term1_a->setSuccessor(j, blocks2_a);
                         int tsuccessornum = term2_a->getNumSuccessors();
+
                         for(int k=0; k<tsuccessornum; k++){
                             BasicBlock* tsuccessorbb = term2_a->getSuccessor(k);
                             if(tsuccessorbb == blocks2_b){
@@ -230,7 +232,7 @@ public :
     }
 
     static ValueInfo* MergeBlocks(BasicBlock* block1, ValueInfo* value1, BasicBlock* block2, ValueInfo* value2, BasicBlock* mergeblock){
-        LOGD("Merge block");
+        
         block1->getTerminator()->eraseFromParent();
         block2->getTerminator()->eraseFromParent();
         BranchInst::Create(mergeblock, block1);
