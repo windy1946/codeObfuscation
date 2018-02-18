@@ -52,8 +52,9 @@ namespace {
 
 ///该函数需要后期继续改进。。。。
   std::vector<BasicBlock*> getBlocksLink(Function* f, int num){
-    
+
     std::vector<Instruction*> instlist;
+    
     for(Function::iterator tbb=f->begin(), tendbb=f->end(); tbb!=tendbb; tbb++){
       BasicBlock* ttbb = &*tbb;
       BasicBlock::iterator tinst=ttbb->begin();
@@ -74,29 +75,59 @@ namespace {
     }
     
 
+
     std::vector<BasicBlock*> blockslink;
-    Function::iterator bb=f->begin();
-    Function::iterator endbb=f->end();
-    blockslink.push_back(&*bb);
-    bb++;
-    BasicBlock* tbb = &*bb;
+    Function::iterator ibb=f->begin();
+    Function::iterator endibb=f->end();
+    //blockslink.push_back(&*bb);
+    //bb++;
+    if(ibb == endibb){
+      return blockslink;
+    }
+    //BasicBlock* tbb = &*bb;
+    
+    BasicBlock* bb = &*ibb;
 
     while(true){
-      
-      //blockslink.push_back(tbb);
-      
-      TerminatorInst* terminst = tbb->getTerminator();
+      if( ibb == endibb ){
+        return blockslink;
+      }
+      if(!ischoose(blockslink, bb)){
+        blockslink.push_back(bb);
+      }
+
+      TerminatorInst* terminst = bb->getTerminator();
       int succnum = terminst->getNumSuccessors();
       if(succnum <= 0){
-        return blockslink;
+        ibb++;
+        if( ibb == endibb ){
+          return blockslink;
+        }
+        bb = &*ibb; 
+        continue;
       }
       BasicBlock* nextbb = terminst->getSuccessor(0);
-      if(ischoose(blockslink, nextbb)){
-        return blockslink;
-      }else{
-        blockslink.push_back(nextbb);
+      bool ischooseflag = false;
+      for(int i=0; i<succnum; i++){
+        nextbb = terminst->getSuccessor(i);
+        if(ischoose(blockslink, nextbb)){
+          continue;
+        }else{
+          //blockslink.push_back(nextbb);
+          bb = nextbb;
+          ischooseflag = true;
+          break;
+        }
       }
-      tbb = nextbb;
+      if(!ischooseflag){
+        ibb++;
+        if( ibb == endibb ){
+          return blockslink;
+        }
+        bb = &*ibb;
+        continue;
+      }
+      
     }
 /*
 //-----------------bug--------------------------------
@@ -116,7 +147,7 @@ namespace {
     LOGDLN("-----------begin-------------");
     LOGDLN(f->getName());
 
-    std::vector<BasicBlock*> blockslink = getBlocksLink(f, 20);
+    std::vector<BasicBlock*> blockslink = getBlocksLink(f, 15);
 
     BasicBlock* entryblock = &*(f->begin());
     Instruction* beginst = &*(entryblock->begin());
@@ -131,7 +162,7 @@ namespace {
       
     SemanticGen semgen;
     BlockInfo cur_blockinfo(entryblock);
-    cur_blockinfo.setChildblockNum(10);
+    cur_blockinfo.setChildblockNum(20);
     BlockInfo blockinfo = semgen.expressionGen(cur_blockinfo);
     //return blockinfo;
 
@@ -143,14 +174,14 @@ namespace {
 
     BlockInfo restblockinfo(restblock);
     restblockinfo.setFlag(true);
-    restblockinfo.setChildblockNum(40);
+    restblockinfo.setChildblockNum(5  );
 
     semgent0.expressionGen(restblockinfo);
 
     std::vector<BasicBlock*> blocks1 = semgent0.getBlocksLink();
     
     LOGD("-------------------------BLOCK VALUES NUM: ");
-    LOGDLN(blockinfo.getValuesSize());
+    LOGDLN(blockinfo.getValuesSize());  
 
     LOGD("------------------------blocks1 links size : ");
     LOGDLN(blocks1.size());
@@ -190,7 +221,8 @@ namespace {
     MyCodeGen() : FunctionPass(ID) {}
     
     bool runOnFunction(Function &F) override {
-
+      LOGD("function name : ");
+      LOGDLN(F.getName());
       DeadcodeGen(&F);
       /*
       int percent = 20; //max num : 100

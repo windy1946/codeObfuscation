@@ -47,10 +47,10 @@ BlockInfo expressionGen(BlockInfo blockinfo){
 BlockInfo StatementGen(BlockInfo blockinfo){
     //LOGDLN("==============================================");
     //LOGDLN(this->codenum);
-    if(this->codenum <= 0){
-        return blockinfo;
-    };
-    this->codenum--;
+    //if(this->codenum <= 0){
+      //  return blockinfo;
+    //};
+    //this->codenum--;
     int randchoice = UtilTool::getrandnum(5);
     //LOGDLN(randchoice);
     switch(randchoice){
@@ -68,13 +68,13 @@ BlockInfo StatementGen(BlockInfo blockinfo){
 BlockInfo ifGen(BlockInfo blockinfo){
     //LOGDLN("IF GEN");
 
-    if(blockinfo.getChildblockNum() <= 1){
+    if(blockinfo.getChildblockNum() <= 0){
         //LOGDLN("child block is 0");
         return blockinfo;
     }
 
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
-    int mergeblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
+    int mergeblockchildnum = 0;//blockinfo.getChildblockNum()-1;//UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
     ValueInfo* randval1 ;//= this->getValueInfo();//blockinfo.getValue();
     ValueInfo* randval2 ;
@@ -102,10 +102,10 @@ BlockInfo ifGen(BlockInfo blockinfo){
     itcg.codegen(blockinfo.getBasicBlock());
     
     BasicBlock* trueblock = itcg.getTrueBlock();
-    int trueblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
+    int trueblockchildnum = blockinfo.getChildblockNum()-1;//UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
     BasicBlock* falseblock = itcg.getFalseBlock();
-    int falseblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
+    int falseblockchildnum = blockinfo.getChildblockNum()-1;//UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
     BlockInfo cur_trueblockinfo(trueblock, blockinfo.getValues(), trueblockchildnum);
     BlockInfo cur_falseblockinfo(falseblock, blockinfo.getValues(), falseblockchildnum);
@@ -154,13 +154,13 @@ BlockInfo ifGen(BlockInfo blockinfo){
 
 BlockInfo switchGen(BlockInfo blockinfo){
     
-    if(blockinfo.getChildblockNum() <= 1){
+    if(blockinfo.getChildblockNum() <= 0){
         return blockinfo;
     }
 
     int condnum = UtilTool::getrandnum(this->Maxswitch)+1;
     BasicBlock* mergeblock = CodeGenTool::CreateBlock(blockinfo.getBasicBlock());
-    int mergeblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum() - 1);
+    int mergeblockchildnum = 0;//UtilTool::getrandnum(blockinfo.getChildblockNum() - 1);
     
     //------------------------------------------------------------
     ValueInfo* switchvalinfo;
@@ -180,10 +180,10 @@ BlockInfo switchGen(BlockInfo blockinfo){
     std::vector<ValueInfo*> values;
 
     BasicBlock* truecaseblock = scg.getTruecaseBlock();
-    int truecaseblocknum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
+    //int truecaseblocknum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
     //LOGDLN("TRUE CASSE BLOCK");
-    int truecaseblockchildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
+    int truecaseblockchildnum = blockinfo.getChildblockNum()-1;//UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
 
     //----------------------------------
     BlockInfo cur_truecaseblockinfo(truecaseblock, blockinfo.getValues(), truecaseblockchildnum);
@@ -204,7 +204,7 @@ BlockInfo switchGen(BlockInfo blockinfo){
     std::vector<BasicBlock*> otherblocks = scg.getOthercaseBlocks();
 
     for(int i=0;i<otherblocks.size();i++){
-        int otherblockschildnum = UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
+        int otherblockschildnum = blockinfo.getChildblockNum()-1;//UtilTool::getrandnum(blockinfo.getChildblockNum()-1);
         BlockInfo othercaseblocksinfo = this->expressionGen(BlockInfo(otherblocks[i],blockinfo.getValues(), otherblockschildnum));
         blocks.push_back(othercaseblocksinfo.getBasicBlock());
         values.push_back(othercaseblocksinfo.getLastValue());
@@ -233,7 +233,7 @@ std::vector<BasicBlock*> getBlocksLink(){
 }
 
 private:
-    int codenum = 300;
+    int codenum = 30000;
     int ExpressionChoices;
     int OperatorChoices;
     int Maxswitch;
